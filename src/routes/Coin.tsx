@@ -5,10 +5,18 @@ import styled from "styled-components";
 import { fetchCoinInfo, fetchCoinTickers } from "../api";
 import Chart from "./Chart";
 import Price from "./Price";
+import {Helmet} from 'react-helmet';
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {faHome, faMoon, faSun} from "@fortawesome/free-solid-svg-icons";
 
 const Title = styled.h1`
   font-size: 48px;
   color: ${(props) => props.theme.accentColor};
+`;
+
+const Loader = styled.span`
+  text-align: center;
+  display: block;
 `;
 
 const Container = styled.div`
@@ -24,11 +32,6 @@ const Header = styled.header`
   align-items: center;
 `;
 
-const Loader = styled.span`
-  text-align: center;
-  display: block;
-`;
-
 const Overview = styled.div`
   display: flex;
   justify-content: space-between;
@@ -36,11 +39,11 @@ const Overview = styled.div`
   padding: 10px 20px;
   border-radius: 10px;
 `;
-
 const OverviewItem = styled.div`
   display: flex;
   flex-direction: column;
   align-items: center;
+  width: 33%;
   span:first-child {
     font-size: 10px;
     font-weight: 400;
@@ -48,34 +51,56 @@ const OverviewItem = styled.div`
     margin-bottom: 5px;
   }
 `;
-
 const Description = styled.p`
-  padding: 0px 10px;
   margin: 20px 0px;
 `;
 
 const Tabs = styled.div`
   display: grid;
   grid-template-columns: repeat(2, 1fr);
-  margin: 25px, 0px;
+  margin: 25px 0px;
   gap: 10px;
 `;
 
-const Tab = styled.span<{isActive: boolean}>`
-  background-color: rgba(0, 0, 0, 0.5);
+const Tab = styled.span<{ isActive: boolean }>`
+  text-align: center;
   text-transform: uppercase;
   font-size: 12px;
   font-weight: 400;
-  padding: 7px 0px;
-  margin-top: 20px;
-  text-align: center;
+  background-color: rgba(0, 0, 0, 0.5);
   border-radius: 10px;
   color: ${(props) =>
-  props.isActive? props.theme.accentColor : props.theme.textColor};
+    props.isActive ? props.theme.accentColor : props.theme.textColor};
   a {
+    padding: 7px 0px;
     display: block;
   }
 `;
+
+const HomeButton = styled.button`
+  // position: absolute;
+  // top: 50px;
+  // left: 50px;
+  background-color: transparent;
+  border: 0;
+  color: rgba(0, 0, 0, 0.5);;
+  &:hover {
+    color: ${(props) => props.theme.accentColor};
+  }
+`;
+
+const ModeButton = styled.button`
+  position: absolute;
+  top: 150px;
+  left: 50px;
+  background-color: transparent;
+  border: 0;
+  color: rgba(0, 0, 0, 0.5);;
+  &:hover {
+    color: ${(props) => props.theme.accentColor};
+  }
+`;
+
 
 interface RouteParams {
   coinId: string;
@@ -107,7 +132,7 @@ interface InfoData {
   last_data_at: string;
 }
 
-interface PriceData {
+export interface PriceData {
   id: string;
   name: string;
   symbol: string;
@@ -142,6 +167,7 @@ interface PriceData {
 }
 
 
+
 function Coin() {
   const { coinId } = useParams<RouteParams>();
   const priceMatch = useRouteMatch("/:coinId/price");
@@ -155,6 +181,10 @@ function Coin() {
     ["tickers", coinId],
     () => fetchCoinTickers(coinId)
   );
+  // ,
+  //   {
+  //     refetchInterval: 5000,
+  //   }
   // const [info, setInfo] = useState<InfoData>();
   // const [priceInfo, setPriceInfo] = useState<PriceData>();
   // const [loading, setLoading] = useState(true);
@@ -174,9 +204,18 @@ function Coin() {
   const loading = infoLoading || tickersLoading;
   return (
     <Container>
+      <Helmet>
+        <title>{state?.name? state.name : loading ? "Loading..." : infoData?.name}</title>
+      </Helmet>
       <Header>
+        <HomeButton>
+          <Link to="/">
+            <FontAwesomeIcon icon={faHome} size="3x" />
+          </Link>
+        </HomeButton>
         <Title>{state?.name? state.name : loading ? "Loading..." : infoData?.name}</Title>
       </Header>
+      
       {loading ? <Loader>Loading...</Loader> : <>
         <Overview>
           <OverviewItem>
@@ -188,8 +227,8 @@ function Coin() {
             <span>{infoData?.symbol}</span>
           </OverviewItem> 
           <OverviewItem>
-            <span>open source:</span>
-            <span>{infoData?.open_source ? "Yes" : "No"}</span>
+            <span>price:</span>
+            <span>{tickersData?.quotes.USD.price.toFixed(3)}</span>
           </OverviewItem>
         </Overview>
         <Description>
@@ -215,11 +254,14 @@ function Coin() {
         </Tabs>
         <Switch>
           <Route path={`/${coinId}/price`}>
-            <Price />
+            <Price coinId={coinId} />
           </Route>
           <Route path={`/${coinId}/chart`}>
-            <Chart coinId={coinId}/>
+            <Chart coinId={coinId} />
           </Route>
+          {/* <Route path="/">
+            <FontAwesomeIcon icon={faReply} />
+          </Route> */}
         </Switch>
       </>}
     </Container>

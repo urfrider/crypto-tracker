@@ -3,6 +3,9 @@ import { Link } from 'react-router-dom';
 import { useState, useEffect } from 'react'
 import { fetchCoins } from "../api";
 import { useQuery } from 'react-query';
+import { Helmet } from 'react-helmet';
+import { useSetRecoilState } from 'recoil';
+import { isDarkAtom } from '../atoms';
 
 const Container = styled.div`
   padding: 0px 20px;
@@ -20,8 +23,9 @@ const Header = styled.header`
 const CoinsList = styled.ul``;
 
 const Coin = styled.li`
-  background-color: white;
-  color: ${(props) => props.theme.bgColor};
+  background-color: ${(props) => props.theme.cardBgColor};
+  color: ${(props) => props.theme.textColor};
+  border: 1px solid white;
   border-radius: 15px;
   margin-bottom: 10px;
   a {
@@ -65,6 +69,8 @@ interface ICoin {
 
 function Coins() {
   const { isLoading, data } = useQuery<ICoin[]>("allCoins", fetchCoins);
+  const setDarkAtom = useSetRecoilState(isDarkAtom);
+  const toggleDarkAtom = () => setDarkAtom((prev) => !prev);
   // const [coins, setCoins] = useState<coinInterface[]>([]);
   // const [loading, setLoading] = useState(true);
   // useEffect(() => {
@@ -78,21 +84,25 @@ function Coins() {
   // }, [])
   return (
     <Container>
-        <Header>
-          <Title>코인</Title>
-        </Header>
-        {isLoading ? <Loader>"Loading..."</Loader> : <CoinsList>
-          {data?.slice(0, 100).map(coin => (
-          <Coin key={coin.id}>
-            <Link to={{
-              pathname: `/${coin.id}`,
-              state: {name: coin.name}
-            }}>
-              <Img src={`https://cryptocurrencyliveprices.com/img/${coin.id}.png`} />
-              {coin.name} &rarr;
-            </Link>
-          </Coin>))}
-        </CoinsList>}
+      <Helmet>
+        <title>Crypto Tracker</title>
+      </Helmet>
+      <Header>
+        <Title>Cryptocurrency</Title>
+        <button onClick={toggleDarkAtom}>Toggle Mode</button>
+      </Header>
+      {isLoading ? <Loader>"Loading..."</Loader> : <CoinsList>
+        {data?.slice(0, 100).map(coin => (
+        <Coin key={coin.id}>
+          <Link to={{
+            pathname: `/${coin.id}`,
+            state: {name: coin.name}
+          }}>
+            <Img src={`https://cryptocurrencyliveprices.com/img/${coin.id}.png`} />
+            {coin.name} &rarr;
+          </Link>
+        </Coin>))}
+      </CoinsList>}
     </Container>
   );
 }
